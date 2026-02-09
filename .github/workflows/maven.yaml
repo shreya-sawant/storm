@@ -52,12 +52,22 @@ jobs:
           node-version: 20
       - name: install ruby 2.7 and bundler on s390x
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libssl1.1 libssl-dev
+          wget https://www.openssl.org/source/openssl-1.1.1w.tar.gz
+          tar -xzf openssl-1.1.1w.tar.gz
           wget https://cache.ruby-lang.org/pub/ruby/2.7/ruby-2.7.8.tar.gz
           tar -xzf ruby-2.7.8.tar.gz
-          cd ruby-2.7.8
-          ./configure --prefix=$HOME/ruby-2.7 --disable-install-doc
+          cd openssl-1.1.1w
+          ./config \
+            --prefix=$HOME/openssl-1.1 \
+            --openssldir=$HOME/openssl-1.1
+          make -j$(nproc)
+          make install
+          cd ~/ruby-2.7.8
+          make distclean || true
+          ./configure \
+           --prefix=$HOME/ruby-2.7 \
+           --with-openssl-dir=$HOME/openssl-1.1 \
+           --disable-install-doc
           make -j$(nproc)
           make install
           export PATH="$HOME/ruby-2.7/bin:$PATH"
