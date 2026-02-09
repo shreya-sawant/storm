@@ -54,15 +54,16 @@ jobs:
         run: |
           wget https://www.openssl.org/source/openssl-1.1.1w.tar.gz
           tar -xzf openssl-1.1.1w.tar.gz
-          wget https://cache.ruby-lang.org/pub/ruby/2.7/ruby-2.7.8.tar.gz
-          tar -xzf ruby-2.7.8.tar.gz
           cd openssl-1.1.1w
           ./config \
             --prefix=$HOME/openssl-1.1 \
             --openssldir=$HOME/openssl-1.1
           make -j$(nproc)
           make install
-          cd ~/ruby-2.7.8
+          cd ..
+          wget https://cache.ruby-lang.org/pub/ruby/2.7/ruby-2.7.8.tar.gz
+          tar -xzf ruby-2.7.8.tar.gz
+          cd ruby-2.7.8
           make distclean || true
           ./configure \
            --prefix=$HOME/ruby-2.7 \
