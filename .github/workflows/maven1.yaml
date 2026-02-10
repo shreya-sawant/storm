@@ -1,0 +1,91 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Java CI with Maven
+
+on:
+  pull_request:
+    branches: [ "master" ]
+  push:
+    branches: [ "master" ]
+  workflow_dispatch: 
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      matrix:
+        os: [ linux-s390x ]
+        java: [ 17, 21 ]
+        module: [ Integration-Test ]
+        experimental: [false]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7 # v5.0.2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Use IBM repo for python for s390x
+        uses: ibm/setup-python-pz@main
+        with:
+          architecture: s390x
+          python-version: '3.14'
+      - name: Set up Node
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        with:
+          node-version: 20
+      - name: install ruby 2.7 and bundler on s390x
+        run: |
+          wget https://www.openssl.org/source/openssl-1.1.1w.tar.gz
+          tar -xzf openssl-1.1.1w.tar.gz
+          cd openssl-1.1.1w
+          ./config \
+            --prefix=$HOME/openssl-1.1 \
+            --openssldir=$HOME/openssl-1.1
+          make -j$(nproc)
+          make install
+          cd ..
+          wget https://cache.ruby-lang.org/pub/ruby/2.7/ruby-2.7.8.tar.gz
+          tar -xzf ruby-2.7.8.tar.gz
+          cd ruby-2.7.8
+          make distclean || true
+          ./configure \
+           --prefix=$HOME/ruby-2.7 \
+           --with-openssl-dir=$HOME/openssl-1.1 \
+           --disable-install-doc
+          make -j$(nproc)
+          make install
+          export PATH="$HOME/ruby-2.7/bin:$PATH"
+          echo "$HOME/ruby-2.7/bin" >> $GITHUB_PATH
+          ruby -v
+          gem install bundler -v 2.4.22
+      - name: Set up JDK ${{ matrix.java }}
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+      - name: Ensure a clean state without storm artifacts
+        run: rm -rf ~/.m2/repository/org/apache/storm
+      - name: Set up project dependencies
+        run: /bin/bash ./dev-tools/gitact/gitact-install.sh `pwd`
+      - name: Run build
+        run: |
+          export JDK_VERSION=${{ matrix.java }} 
+          export USER=github
+          /bin/bash ./dev-tools/gitact/gitact-script.sh `pwd` ${{ matrix.module }};
