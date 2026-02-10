@@ -28,7 +28,7 @@ jobs:
     continue-on-error: ${{ matrix.experimental }}
     strategy:
       matrix:
-        os: [ s390x-linux2 ]
+        os: [ S390X ]
         java: [ 17, 21 ]
         module: [ Integration-Test, Client, External ]
         experimental: [false]
@@ -52,6 +52,7 @@ jobs:
           node-version: 20
       - name: install ruby 2.7 and bundler on s390x
         run: |
+          cd $HOME
           wget https://www.openssl.org/source/openssl-1.1.1w.tar.gz
           tar -xzf openssl-1.1.1w.tar.gz
           cd openssl-1.1.1w
@@ -60,20 +61,19 @@ jobs:
             --openssldir=$HOME/openssl-1.1
           make -j$(nproc)
           make install
-          cd ..
+          cd $HOME
           wget https://cache.ruby-lang.org/pub/ruby/2.7/ruby-2.7.8.tar.gz
           tar -xzf ruby-2.7.8.tar.gz
           cd ruby-2.7.8
           make distclean || true
           ./configure \
-           --prefix=$HOME/ruby-2.7 \
-           --with-openssl-dir=$HOME/openssl-1.1 \
-           --disable-install-doc
+            --prefix=$HOME/ruby-2.7 \
+            --with-openssl-dir=$HOME/openssl-1.1 \
+            --disable-install-doc
           make -j$(nproc)
           make install
           export PATH="$HOME/ruby-2.7/bin:$PATH"
           echo "$HOME/ruby-2.7/bin" >> $GITHUB_PATH
-          ruby -v
           gem install bundler -v 2.4.22
       - name: Set up JDK ${{ matrix.java }}
         uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
