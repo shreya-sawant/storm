@@ -34,6 +34,7 @@ list_storm_processes || true
 if [ "$(uname -m)" != aarch64 ]; then
   # increasing swap space so we can run lots of workers
   sudo dd if=/dev/zero of=/swapfile.img bs=4096 count=1M
+  sudo chmod 600 /swapfile.img
   sudo mkswap /swapfile.img
   sudo swapon /swapfile.img
 fi
