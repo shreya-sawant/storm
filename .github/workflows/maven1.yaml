@@ -28,9 +28,9 @@ jobs:
     continue-on-error: ${{ matrix.experimental }}
     strategy:
       matrix:
-        os: [ s390x-linux2, ubuntu-latest ]
+        os: [ s390x-linux2 ]
         java: [ 17, 21 ]
-        module: [ Integration-Test ]
+        module: [ Integration-Test, Client, External ]
         experimental: [false]
       fail-fast: false
     steps:
