@@ -54,7 +54,8 @@ jobs:
         if: matrix.module == 'External'
         run: |
           sudo groupadd docker || true
-          sudo usermod -aG docker test && newgrp docker
+          sudo usermod -aG docker $(whoami)
+          newgrp docker <<EOF
           sudo apt-get update
           sudo install -m 0755 -d /etc/apt/keyrings
           curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
