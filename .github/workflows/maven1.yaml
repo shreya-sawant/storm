@@ -30,7 +30,7 @@ jobs:
       matrix:
         os: [ S390X ]
         java: [ 17 ]
-        module: [ External ]
+        module: [ Integration-Test ]
         experimental: [false]
       fail-fast: false
     steps:
