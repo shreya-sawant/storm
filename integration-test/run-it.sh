@@ -31,13 +31,7 @@ function list_storm_processes() {
 }
 
 list_storm_processes || true
-if [ "$(uname -m)" == s390x ]; then
-  # increasing swap space so we can run lots of workers
-  sudo truncate -s 4G /swapfile.img
-  sudo chattr +C /swapfile.img || true
-  sudo chmod 600 /swapfile.img
-fi
-if [ "$(uname -m)" != aarch64 ]; then
+if [ "$(uname -m)" != aarch64 || "$(uname -m)" != s390x ]; then
   # increasing swap space so we can run lots of workers
   sudo dd if=/dev/zero of=/swapfile.img bs=4096 count=1M
   sudo mkswap /swapfile.img
