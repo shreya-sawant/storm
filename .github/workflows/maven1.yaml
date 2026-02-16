@@ -53,6 +53,7 @@ jobs:
       - name: install docker
         if: matrix.module == 'External'
         run: |
+          sudo groupadd docker || true
           sudo usermod -aG docker test && newgrp docker
           sudo apt-get update
           sudo install -m 0755 -d /etc/apt/keyrings
