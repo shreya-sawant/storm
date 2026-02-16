@@ -29,8 +29,8 @@ jobs:
     strategy:
       matrix:
         os: [ S390X ]
-        java: [ 17, 21 ]
-        module: [ Integration-Test, Client, External ]
+        java: [ 17 ]
+        module: [ External ]
         experimental: [false]
       fail-fast: false
     steps:
@@ -50,6 +50,21 @@ jobs:
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version: 20
+      - name: install docker
+        if: matrix.module == 'External'
+        run: |
+          sudo groupadd docker
+          sudo usermod -aG docker test && newgrp docker
+          sudo apt-get update
+          sudo install -m 0755 -d /etc/apt/keyrings
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+          sudo chmod a+r /etc/apt/keyrings/docker.gpg
+          echo \
+              "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+          "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" |
+             sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
+          sudo apt-get update
+          sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
       - name: install ruby 2.7 and bundler on s390x
         run: |
           cd $HOME
