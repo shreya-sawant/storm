@@ -28,7 +28,7 @@ jobs:
     continue-on-error: ${{ matrix.experimental }}
     strategy:
       matrix:
-        os: [ linux-s390x ]
+        os: [ S390X ]
         java: [ 17, 21 ]
         module: [ Client, Server, Core, External, Check-Updated-License-Files, Integration-Test ]
         experimental: [false]
